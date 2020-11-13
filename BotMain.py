@@ -1,1 +1,1 @@
-
+print('Your mom gay')
