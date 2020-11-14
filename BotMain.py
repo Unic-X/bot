@@ -10,8 +10,7 @@ id=client.get_guild(768825635682254869)
 async def on_message(message):
     if message.content.find("!hello") !=-1:
         await message.channel.send("hi")
-    elif message.content.find("!mc") !=-1:
-        await message.channel.send("tera baap mc ")
+    
         
 @client.event
 async def on_message_delete(message):                       #for logging deleted messages
