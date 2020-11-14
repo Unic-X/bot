@@ -20,5 +20,17 @@ async def on_message_delete(message):                       #for logging deleted
          id=777150786974515200
          channel=client.get_channel(id)
          await channel.send(f'{mc} | Author:{ma}')
-
+            
+@client.event
+async def on_message(message):                             #for deleting messages
+    mc_l=(message.content).lower()
+    if mc_l[0:5]=='.del ':
+        try:
+            n=int(mc_l[5:])
+        except:
+            await message.channel.send('Give a number Retard')
+        else:
+            await message.channel.purge(limit=n+1)
+            
+            
 client.run(token)
