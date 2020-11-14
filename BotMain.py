@@ -32,5 +32,19 @@ async def on_message(message):                             #for deleting message
         else:
             await message.channel.purge(limit=n+1)
             
+@client.event
+async def on_message_edit(before,after):
+    if before.guild.id == 485358227249168396 and before.author != client.user:         #for logging edited message
+         ma=before.author
+         bc=before.content
+         ac=after.content
+         id=777191174032195595
+         embed_e=dc.Embed(title='Edited Message')
+         embed_e.add_field(name='Before : ',value=bc)
+         embed_e.add_field(name='After : ',value=ac)
+         embed_e.add_field(name='Author : ',value=ma)
+         
+         channel=client.get_channel(id)
+         await channel.send(content=None,embed=embed_e)            
             
 client.run(token)
