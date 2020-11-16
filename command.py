@@ -5,7 +5,7 @@ from discord.ext import commands
 import random
 
 
-token = "NzY4ODI1NjM1NjgyMjU0ODY5.X5GGqw._ivQmwl03tujKUyMX5lg7Nwi34U"
+token = ""
 dc.Emoji
 client = commands.Bot(command_prefix="!",case_insensitive=False)
 channels=[]
