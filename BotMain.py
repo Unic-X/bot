@@ -159,5 +159,76 @@ async def ui(ctx,*,member:dc.Member=None):
     e.add_field(name=f"Roles({len(member.roles)-1})",value=roles)
 
     await ctx.send(content=f"<:info:779039384296882217> Information about **{member.name}**",embed=e)
+                
+ @client.command()
+async def search(ctx,*,message=None):
+    if message==None:
+
+        message=wikipedia.random(pages=1)
+
+        heading=message
+
+    try:
+
+        inp=wikipedia.search(message,results=1)[0].replace(" ","_")  # search(ctx,*,msg)
+
+        url="https://en.wikipedia.org/wiki/"+inp
+
+        response=requests.get(url).content
+
+        soup=BeautifulSoup(response,"html.parser")
+
+        related="\n".join(wikipedia.search(message,results=5))
+
+        content=soup.find("div",class_="mw-parser-output")
+
+        if message!=None:heading=soup.find(id="firstHeading").text
+
+        #for image link scraping
+        try:
+            url1="https:"+content.find("table",class_="infobox").img["src"] #try to search on the table if any
+        except:
+            try:
+                url1="https:"+content.find("div",class_="thumbinner").img["src"] #if not try to search on the thumbpanel if any
+            except:
+                url1="https://seeba.se/wp-content/themes/consultix/images/no-image-found-360x260.png" #if all fails then no image
+
+        paragraphs = content.find_all("p",limit=10)  #returns list of all <p> inside <div> class_=mw-parser-output we only need 1st(and 2nd if the content is less and even 3rd can be added if needed)
+
+
+        for par in paragraphs:
+            for tags in par.find_all("sup"):    #deletes all the <sup> and returns a clean code without [] but has a time complexity of O(n^2)
+                tags.decompose()
+
+        counter=0
+        while len(paragraphs[counter].text) == 1: #the loop will check until the paragraph is not empty
+            counter+=1
+
+        text_content=paragraphs[counter].text
+
+        for paragraph in paragraphs[counter+1:]:  #O(3) is more better than searching the whole list
+            if len(text_content)>1024 or len(text_content+paragraph.text)>1024:
+                break                              #breaks the loop if more than 1024 char for Embed
+            else:
+                text_content+="\n"+paragraph.text 
+
+        embed=dc.Embed(title="About",color=random.choice(colors),url=url)  #only embeds dw
+
+        embed.add_field(name=heading,value=text_content,inline=False)
+
+        embed.add_field(name="Related",value=related,inline=False)
+
+        embed.set_thumbnail(url=url1)
+        
+        await ctx.send(embed=embed,content=f"<:info:779039384296882217> Information about **{message}**")
+
+    except:                                                             #on exception the code will break and say nothing found daddy UwU
+
+        embed=dc.Embed(color=dc.Colour.red())
+
+        embed.add_field(name="Error",value="Nothing Found <:wetpussy:722737793545273416>")
+    
+        await ctx.send(content=f"<:info:779039384296882217> Information about **{message}**",embed=embed)
+
 
 client.run(token)
