@@ -160,7 +160,7 @@ async def ui(ctx,*,member:dc.Member=None):
 
     await ctx.send(content=f"<:info:779039384296882217> Information about **{member.name}**",embed=e)
                 
- @client.command()
+@client.command()
 async def search(ctx,*,message=None):
     if message==None:
 
