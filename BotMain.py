@@ -2,233 +2,195 @@ import discord as dc
 import asyncio
 from discord.ext import commands
 import random
-import wikipedia as wik
-from bs4 import BeautifulSoup
-import requests
-import datetime
+from discord.ext import tasks
+
+cogs_=("commands.wiki_search",
+        "commands.error"
+)
+
+#checks if the guild has the jail role or not 
+def jailcheck(guild:dc.Guild):
+    for i in guild.roles[1:]:
+        if i.name=="Jail":
+            return (i,True)
+            break
+        else:
+            continue
+
+'''complete bot rewrite as there were many functions
+ non readables and crashes that were to be handeled 
+so instead of updating the bot there itself i made
+ this as the rewrite'''
+
+'''intents are present in order to find the 
+status of the users and memebers around the bot'''
 
 intents=dc.Intents.default()
 intents.members=True
 intents.presences=True
 
-banned_words=["bruh","BRUH"]
+'''random colors just for fun'''
 
-token = ""
+colors=[dc.Colour.blue(),dc.Colour.blurple(),dc.Colour.red(),dc.Colour.dark_blue(),dc.Colour.teal(),dc.Colour.gold(),
+dc.Colour.magenta()]
 
-client=commands.Bot(command_prefix="!",intents=intents)
+'''token declaration'''
 
-@client.event
-async def on_ready():
-    await client.change_presence(activity=dc.Game("Supa Mario"))
-    client.reaction_role=[]
+token = "NzY4ODI1NjM1NjgyMjU0ODY5.X5GGqw.MOnV8C7-uBahvdzJJjmrHBRsXZo"
 
-@client.command()
-@commands.has_permissions(manage_permissions=True)
-async def addrole(ctx,*,role:dc.Role=None,member:dc.Member=None):
-    if member==None:
-        member=ctx.author
-        e = dc.Embed(color=dc.Colour.dark_green(),title="addrole")
-        e.add_field(name="Added Role",value="Added Role to {}".format(member.mention))
-        await ctx.send(embed=e,content=None)
-        await member.add_roles(role)
-    elif role==None:
-        e = dc.Embed(color=dc.Colour.dark_red(),title="Usage")
-        e.add_field(name="!addrole",value="!addrole {} {}".format("[MemberName]","(RoleName)"))
-        await ctx.send(embed=e,content=None)
-    elif role==None and member==None:
-        e = dc.Embed(color=dc.Colour.dark_red(),title="Usage")
-        e.add_field(name="!addrole",value="!addrole {} {}".format("[MemberName]","(RoleName)"))
-        await ctx.send(embed=e,content=None)
+'''prefix and help command decalration'''
 
-'''@client.event
-async def on_message(msg):
-    if msg.content=="emojiall":
-        dc.Emoji(msg.guild.id,)'''
+client=commands.Bot(command_prefix="!",intents=intents,case_insensitive=False,owner_id=0)
+commands.DefaultHelpCommand()
 
-@client.event
-async def on_message(msg):
-    name=str(msg.content).lower()
-    if name=="bruh":
-        await msg.delete()
-    await client.process_commands(msg)
+@commands.guild_only()
+class Admin(commands.Cog,name="Admin"):
 
-@client.command()
-async def warn(ctx,*,member:dc.Member=None,reason=None):
-    if member==None or reason==None:
-        await ctx.send("Please mention whom to warn")
-    else:
+    @commands.is_owner()
+    def __init__(self,*args):
         pass
-
-@client.command()
-async def invite(ctx):
-    a = dc.utils.oauth_url(client_id="768825635682254869",permissions=dc.Permissions(8))
-    await ctx.send(a)
-
-@client.command(aliases=["id"])
-async def _id(ctx):
-    await ctx.send(ctx.guild.id)
-
-@client.command()
-async def emojis(ctx):
-    s=''
-    for i in (ctx.guild.emojis):
-        if i.animated==False:
-             s+="<:{}:{}>".format(i.name,i.id)
-    await ctx.send(s)
-
-@client.command()
-async def addemojis(ctx,role:dc.Role,msg:dc.Message,emoji:dc.Emoji):
-    if msg==None or emoji==None or role==None:
-        ctx.send("Invalid Args")
-    else:
-        await msg.add_reaction(emoji)
-        client.reaction_role.append((msg.id,role,emoji))
-
-@client.event
-async def on_raw_reaction_add(payload:dc.RawReactionActionEvent):
-    channel=payload.channel_id
-
-@client.command()
-async def lock(ctx,channel:dc.TextChannel,role:dc.Role=None):
-    if role==None:
-        role=ctx.guild.roles[0]
-    await channel.set_permissions(target=role,send_messages=False)
-    await ctx.send(role.id)
-
-@client.command()
-async def search(ctx,*,inp):
-    url="https://en.wikipedia.org/wiki/"+str(inp).replace(" ","_")
-
-    response=requests.get(url).content
-
-    soup=BeautifulSoup(response,"html.parser")
-
-    e=dc.Embed(title=(soup.find(id="firstHeading")).text,url=url)
-
-    await ctx.send(embed=e)
-
-    #print(soup.find(id="firstHeading").text)
-
-
-@client.command()
-async def ui(ctx,*,member:dc.Member=None):
-    if member==None:
-        member=ctx.author
-    if member.mobile_status == dc.Status.online:
-        mobile_sts="Mobile status <:online1:778941955740663828>"
-    elif member.mobile_status == dc.Status.idle: 
-        mobile_sts="Mobile status <:idle1:778942115136143370>"
-    elif member.mobile_status == dc.Status.dnd:
-        mobile_sts="Mobile status <:dnd:778942294233186374>"
-    elif member.mobile_status == dc.Status.offline or member.mobile_status == dc.Status.invisible:
-        mobile_sts="Mobile status <:ded1:778942365527703562>"
     
-    if member.web_status == dc.Status.online:
-       web_sts="Web status <:online1:778941955740663828>"
-    elif member.web_status == dc.Status.idle:
-        web_sts="Web status <:idle1:778942115136143370>"
-    elif member.web_status == dc.Status.dnd:
-        web_sts="Web status <:dnd:778942294233186374>"
-    elif member.web_status == dc.Status.offline or member.web_status == dc.Status.invisible:
-        web_sts="Web status <:ded1:778942365527703562>"
-    
-    if member.desktop_status == dc.Status.online:
-        desk_sts="Desktop status <:online1:778941955740663828>"
-    elif member.desktop_status == dc.Status.idle:
-        desk_sts="Desktop status <:idle1:778942115136143370>"
-    elif member.desktop_status == dc.Status.dnd:
-        desk_sts="Desktop status <:dnd:778942294233186374>"
-    elif member.desktop_status == dc.Status.offline or member.desktop_status == dc.Status.invisible:
-        desk_sts="Desktop status <:ded1:778942365527703562>"
+    #user info about the user the method used here is complete non-async
+    #but instead should be async
+    @commands.command()
+    @commands.is_owner()
+    async def closebot(self,ctx,*,password):
+        if password == "ZedawdawDW":
+            await client.close()
+        else:
+            await ctx.send("Wrong Password")
 
-    is_bot="<:cross1:779006336854786058>"
+    @closebot.error
+    async def bot_error(self,ctx,error):
+        if isinstance(error,commands.CheckFailure):
+            await ctx.send("Y ARE HA")
 
-    if member.bot == True:
-        is_bot="<a:right:779006338671968256>"
-    else:
+    @commands.guild_only()
+    @commands.command()
+    async def ui(self,ctx,*,member:dc.Member=None):
+        await ctx.trigger_typing()
+        '''sends sex'''
+        if member==None:
+            member=ctx.author
+        if member.mobile_status == dc.Status.online:
+            mobile_sts="Mobile status <:online1:778941955740663828>"
+        elif member.mobile_status == dc.Status.idle: 
+            mobile_sts="Mobile status <:idle1:778942115136143370>"
+        elif member.mobile_status == dc.Status.dnd:
+            mobile_sts="Mobile status <:dnd:778942294233186374>"
+        elif member.mobile_status == dc.Status.offline or member.mobile_status == dc.Status.invisible:
+            mobile_sts="Mobile status <:ded1:778942365527703562>"
+
+        if member.web_status == dc.Status.online:
+           web_sts="Web status <:online1:778941955740663828>"
+        elif member.web_status == dc.Status.idle:
+            web_sts="Web status <:idle1:778942115136143370>"
+        elif member.web_status == dc.Status.dnd:
+            web_sts="Web status <:dnd:778942294233186374>"
+        elif member.web_status == dc.Status.offline or member.web_status == dc.Status.invisible:
+            web_sts="Web status <:ded1:778942365527703562>"
+
+        if member.desktop_status == dc.Status.online:
+            desk_sts="Desktop status <:online1:778941955740663828>"
+        elif member.desktop_status == dc.Status.idle:
+            desk_sts="Desktop status <:idle1:778942115136143370>"
+        elif member.desktop_status == dc.Status.dnd:
+            desk_sts="Desktop status <:dnd:778942294233186374>"
+        elif member.desktop_status == dc.Status.offline or member.desktop_status == dc.Status.invisible:
+            desk_sts="Desktop status <:ded1:778942365527703562>"
+
         is_bot="<a:cross1:779006336854786058>"
-    roles=""
-    for i in member.roles:
-        if i.id==ctx.guild.id:
-            continue
-        roles+=i.mention+"\n"
-    e=dc.Embed()
-    e.add_field(name=f"About {member}",value=f"<:arrow:778989582620426260> **Nick Name :** {member.display_name} \n <:arrow:778989582620426260> **User ID : ** {member.id} \n <:arrow:778989582620426260> **Joined Server ** {member.joined_at.strftime('%d-%b-%Y')} \n <:arrow:778989582620426260> **Joined Discord : ** {member.created_at.strftime('%d-%b-%Y')} \n <:arrow:778989582620426260> **Bot :** {is_bot} \n <:arrow:778989582620426260> **Avatar URL :** [Click here]({member.avatar_url})",inline=False)
-    e.add_field(name="Status",value='{} | <:phone:778984480772980796> Mobile Status \n {} | <:web:778984466470797342> Web Status \n {} | <:pc:778984512372998204> Desktop Status'.format(mobile_sts,web_sts,desk_sts),inline=True)
-    e.set_thumbnail(url=member.avatar_url)
-    e.add_field(name=f"Roles({len(member.roles)-1})",value=roles)
 
-    await ctx.send(content=f"<:info:779039384296882217> Information about **{member.name}**",embed=e)
-                
-@client.command()
-async def search(ctx,*,message=None):
-    if message==None:
+        if member.bot == True:
+            is_bot="<a:right:779006338671968256>"
+        else:
+            is_bot="<a:cross1:779006336854786058>"
+        roles=[]
+        for i in member.roles:
+            roles.append(i.mention)
+        e=dc.Embed(colour=random.choice(colors))
+        e.add_field(name=f"About {member}",value=f"<:arrow:778989582620426260> **Nick Name :** {member.display_name} \n <:arrow:778989582620426260> **User ID : ** {member.id} \n <:arrow:778989582620426260> **Joined Server ** {member.joined_at.strftime('%d-%b-%Y')} \n <:arrow:778989582620426260> **Joined Discord : ** {member.created_at.strftime('%d-%b-%Y')} \n <:arrow:778989582620426260> **Bot :** {is_bot} \n <:arrow:778989582620426260> **Avatar URL :** [Click here]({member.avatar_url})",inline=False)
+        e.add_field(name="Status",value='{} | <:phone:778984480772980796> Mobile Status \n {} | <:web:778984466470797342> Web Status \n {} | <:pc:778984512372998204> Desktop Status'.format(mobile_sts,web_sts,desk_sts),inline=True)
+        e.set_thumbnail(url=member.avatar_url)
+        if len(member.roles)==1:
+            e.add_field(name=f"Roles({len(member.roles)-1})",value="None")
+        else:
+            e.add_field(name=f"Roles({len(member.roles)-1})",value="\n".join(roles[1:]))
 
-        message=wikipedia.random(pages=1)
-
-        heading=message
-
-    try:
-
-        inp=wikipedia.search(message,results=1)[0].replace(" ","_")  # search(ctx,*,msg)
-
-        url="https://en.wikipedia.org/wiki/"+inp
-
-        response=requests.get(url).content
-
-        soup=BeautifulSoup(response,"html.parser")
-
-        related="\n".join(wikipedia.search(message,results=5))
-
-        content=soup.find("div",class_="mw-parser-output")
-
-        if message!=None:heading=soup.find(id="firstHeading").text
-
-        #for image link scraping
-        try:
-            url1="https:"+content.find("table",class_="infobox").img["src"] #try to search on the table if any
-        except:
+        await ctx.send(content=f"<:info:779039384296882217> Information about **{member.name}**",embed=e)
+    @commands.guild_only()
+    @commands.command(aliases=["j"])
+    async def jail(self,ctx,*,member:dc.Member=None):
+        await ctx.trigger_typing()
+        #if "jail" in [i.name for i in ctx.guild.channels] and jailcheck(ctx.guild)[1]==True:
+            #memeber.add_roles()
+        if member!=None:  
             try:
-                url1="https:"+content.find("div",class_="thumbinner").img["src"] #if not try to search on the thumbpanel if any
-            except:
-                url1="https://seeba.se/wp-content/themes/consultix/images/no-image-found-360x260.png" #if all fails then no image
+                jail,bool_ = jailcheck(ctx.guild)
+                message = await ctx.send("Wait while bot checks some stuff... <a:load:788355404794429460>")
+                await member.add_roles(jail)
+                if bool_==True:
+                   for channel in ctx.guild.channels:                    
+                        if "jail" in (i.name for i in ctx.guild.channels):
+                            if channel.name!="jail":
+                                await channel.set_permissions(target=jail,read_messages=False,send_messages=False)
+                                print(f"sat perms for {channel.name}")
+                            else:
+                                await channel.set_permissions(target=jail,read_messages=True,send_messages=True)
+                                print("set perms for jail")
+                        elif "jail" not in (i.name for i in ctx.guild.channels):
+                            await ctx.guild.create_text_channel(name="jail",overwrites={ctx.guild.default_role:dc.PermissionOverwrite(read_messages=False)
+                                                                                        ,jail:dc.PermissionOverwrite(read_messages=True,send_messages=True)})
+                            print("made channel and sat perms")
+                await dc.Message.edit(message,content="Done everything finally!! <a:right:779006338671968256>",delete_after=20)         
 
-        paragraphs = content.find_all("p",limit=10)  #returns list of all <p> inside <div> class_=mw-parser-output we only need 1st(and 2nd if the content is less and even 3rd can be added if needed)
-
-
-        for par in paragraphs:
-            for tags in par.find_all("sup"):    #deletes all the <sup> and returns a clean code without [] but has a time complexity of O(n^2)
-                tags.decompose()
-
-        counter=0
-        while len(paragraphs[counter].text) == 1: #the loop will check until the paragraph is not empty
-            counter+=1
-
-        text_content=paragraphs[counter].text
-
-        for paragraph in paragraphs[counter+1:]:  #O(3) is more better than searching the whole list
-            if len(text_content)>1024 or len(text_content+paragraph.text)>1024:
-                break                              #breaks the loop if more than 1024 char for Embed
-            else:
-                text_content+="\n"+paragraph.text 
-
-        embed=dc.Embed(title="About",color=random.choice(colors),url=url)  #only embeds dw
-
-        embed.add_field(name=heading,value=text_content,inline=False)
-
-        embed.add_field(name="Related",value=related,inline=False)
-
-        embed.set_thumbnail(url=url1)
-        
-        await ctx.send(embed=embed,content=f"<:info:779039384296882217> Information about **{message}**")
-
-    except:                                                             #on exception the code will break and say nothing found daddy UwU
-
-        embed=dc.Embed(color=dc.Colour.red())
-
-        embed.add_field(name="Error",value="Nothing Found <:wetpussy:722737793545273416>")
+            except Exception as e:
+                await ctx.guild.create_role(name="Jail")
+                print("created role")
+                await asyncio.sleep(1)              #sleeping so as to make the role 1st and then excecute the program 
+                await self.jail(ctx,member=member)
+                await ctx.send(f'Following caused the problem to slow ```Role was either removed or not created```')
+        else:
+            emb=dc.Embed(title="Jail",colour=dc.Color.teal())
+            emb.add_field(name="How to use the command",value="U must mention whom to jail")
+            await ctx.send(embed=emb)
     
-        await ctx.send(content=f"<:info:779039384296882217> Information about **{message}**",embed=embed)
+    @jail.error
+    async def jail_error(self,ctx,error):
+        if isinstance(error,commands.CheckFailure):
+            await ctx.send("PORN")
 
+    @commands.command()
+    async def send(self,ctx):
+        await ctx.send("https://media.discordapp.net/attachments/781804302812839966/788619896169955358/error.gif")
+
+    @commands.guild_only()
+    @commands.command()
+    async def lock(self,ctx,channel:dc.TextChannel=None,role:dc.Role=None):
+        if channel==None:
+            channel=ctx.channel
+        if role==None:
+            role=ctx.guild.roles[0]
+        await channel.set_permissions(target=role,send_messages=False)
+        await ctx.send(f"locked {channel} <a:right:779006338671968256>")
+
+    @commands.guild_only()
+    @commands.command(help="Sex pORn Hub DEcx")
+    async def cinf(self,ctx,channel:dc.TextChannel=None):
+        if channel==None:
+            channel=ctx.channel
+        e=dc.Embed(title=channel.name,colour=dc.Color.dark_teal())
+        e.add_field(name="Info",value=f'''{channel.position}
+                                        {channel.created_at}
+                                        {channel.category}
+                                        {"".join((f.url for f in await channel.invites()))}''')
+        await ctx.send(embed=e)
+
+
+client.add_cog(Admin(client))
+
+for cog in cogs_:
+    client.load_extension(cog)
 
 client.run(token)
+
