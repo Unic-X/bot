@@ -1,8 +1,8 @@
 [
     {
-    "blocked_user":[{"guild_id":null}],
-    "blocked_guilds":[{}],
-    "blocked_channel":[{}]
+    "blocked_users":[],
+    "blocked_guilds":[],
+    "blocked_channels":[]
     }
 ]
 
