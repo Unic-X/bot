@@ -8,6 +8,10 @@ cogs_=("commands.wiki_search",
         "commands.error"
 )
 
+'''initial key calling'''
+with open("bot/keys.json") as json_file:
+    text=json.load(json_file)
+    
 #checks if the guild has the jail role or not 
 def jailcheck(guild:dc.Guild):
     for i in guild.roles[1:]:
@@ -192,5 +196,11 @@ client.add_cog(Admin(client))
 for cog in cogs_:
     client.load_extension(cog)
 
-client.run(token)
+if __name__ == "__main__":
+    token=text[0]["token"]
+else:
+    token=None
+
+if token!=None:
+    client.run(token)
 
